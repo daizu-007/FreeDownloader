@@ -24,11 +24,19 @@
             </TitleBar.IconSource>
         </TitleBar>
 
-        <!--
-            The Frame hosts pages for your application content. Add your UI to
-            MainPage.xaml rather than here so you can use Page features such as
-            navigation events and the Loaded lifecycle.
-        -->
-        <Frame x:Name="RootFrame" Grid.Row="1" />
+        <NavigationView x:Name="NavView"
+                        Grid.Row="1"
+                        IsBackButtonVisible="Collapsed"
+                        IsSettingsVisible="False"
+                        PaneDisplayMode="LeftCompact"
+                        SelectionChanged="NavView_SelectionChanged"
+                        Loaded="NavView_Loaded">
+            <NavigationView.MenuItems>
+                <NavigationViewItem Content="ダウンロード" Tag="Download" Icon="Download"/>
+                <NavigationViewItem Content="キュー" Tag="Queue" Icon="List"/>
+                <NavigationViewItem Content="設定" Tag="Settings" Icon="Setting"/>
+            </NavigationView.MenuItems>
+            <Frame x:Name="RootFrame" />
+        </NavigationView>
     </Grid>
 </Window>
