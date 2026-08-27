@@ -12,6 +12,25 @@ public sealed partial class MainPage : Page
     {
         InitializeComponent();
     }
+    
+    // YT-DLPダウンロードボタン
+    private async void InstallYtDlpButton_Click(object sender, Microsoft.UI.Xaml.RoutedEventArgs e)
+    {
+        string exePath = "C:\\Users\\daizu\\AppData\\Local\\Microsoft\\WinGet\\Links\\yt-dlp.exe";
+        string wingetArgs = "install yt-dlp";
+
+        // wingetでインストール
+        int exitCode = await RunCliAsync("winget", wingetArgs, CancellationToken.None);
+
+        if (exitCode == 0)
+        {
+            ResultText.Text = $"YT-DLPが正常にインストールされました: {exePath}";
+        }
+        else
+        {
+            ResultText.Text = $"YT-DLPのインストールに失敗しました。終了コード: {exitCode}";
+        }
+    }
 
     // ダウンロードボタン
     private async void DownloadButton_Click(object sender, Microsoft.UI.Xaml.RoutedEventArgs e)

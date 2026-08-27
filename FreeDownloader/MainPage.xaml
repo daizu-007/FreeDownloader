@@ -8,6 +8,17 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     mc:Ignorable="d">
     <Grid>
+        <!-- 上部の操作 -->
+        <StackPanel VerticalAlignment="Top">
+            <Button Content="YT-DLPをインストール"
+                    HorizontalAlignment="Center"
+                    Click="InstallYtDlpButton_Click"/>
+            <TextBox x:Name="YTDLPPathTextBox"
+                     PlaceholderText="yt-dlp.exeのパスを入力してください"
+                     Width="400"
+                     HorizontalAlignment="Center" />
+        </StackPanel>
+        <!-- メイン操作 -->
         <StackPanel HorizontalAlignment="Center"
                     VerticalAlignment="Center"
                     Spacing="12">
