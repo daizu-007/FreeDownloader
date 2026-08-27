@@ -1,0 +1,12 @@
+<Project>
+  <PropertyGroup>
+    <!-- ここだけ変えれば全部に反映される -->
+    <Version>1.0.0</Version>
+    <ApplicationDisplayVersion>$(Version)</ApplicationDisplayVersion>
+    <ApplicationVersion>0</ApplicationVersion> <!-- 4桁目のリビジョン -->
+    <!-- Assemblyにも同じバージョンが入る -->
+    <FileVersion>$(Version).0</FileVersion>
+    <AssemblyVersion>$(Version).0</AssemblyVersion>
+    <InformationalVersion>$(Version)</InformationalVersion>
+  </PropertyGroup>
+</Project>

@@ -9,8 +9,18 @@
     <Grid Padding="24">
         <StackPanel Spacing="16">
             <TextBlock Text="設定" FontSize="24" FontWeight="Bold"/>
-            <TextBlock Text="ここに設定項目を追加してください。" Opacity="0.6"/>
-            <!-- TODO: 設定UIをここに追加 -->
+            <Border Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                    BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                    BorderThickness="1"
+                    CornerRadius="8"
+                    Padding="16">
+                <StackPanel Spacing="8">
+                    <TextBlock Text="ダウンロードディレクトリ" FontWeight="SemiBold"/>
+                    <TextBox Text="{x:Bind Settings.DownloadDirectory, Mode=TwoWay}" PlaceholderText="ダウンロード先のディレクトリを入力してください"/>
+                    <TextBlock Text="yt-dlpの実行ファイルパス" FontWeight="SemiBold"/>
+                    <TextBox Text="{x:Bind Settings.YtDlpExecutablePath, Mode=TwoWay}" PlaceholderText="yt-dlpの実行ファイルパスを入力してください"/>
+                </StackPanel>
+            </Border>
         </StackPanel>
     </Grid>
 </Page>

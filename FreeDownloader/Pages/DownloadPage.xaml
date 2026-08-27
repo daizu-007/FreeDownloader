@@ -7,38 +7,75 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     mc:Ignorable="d">
     <Grid Padding="24">
-        <TextBlock Text="Welcome to FreeDownloader!"
-                   FontSize="24"
-                   FontWeight="Bold"
-                   HorizontalAlignment="Center" />
-        <StackPanel HorizontalAlignment="Center"
-                    VerticalAlignment="Center"
-                    Spacing="12">
-            <StackPanel Orientation="Horizontal" 
-                        HorizontalAlignment="Center"
-                        Spacing="8">
-                <TextBlock Text="ダウンロードしたいURL:"
-                           Opacity="0.6"
-                           VerticalAlignment="Center"/>
-                <TextBox x:Name="UrlTextBox"
-                         PlaceholderText = "URLを入力してください"
-                         Width="300"
-                         HorizontalAlignment="Center" />
-            </StackPanel>
-            <Button x:Name="DownloadButton"
-                    Content="ダウンロード"
-                    HorizontalAlignment="Stretch"
-                    Click="DownloadButton_Click"/>
-            <Button x:Name="CancelButton"
-                    Content="キャンセル"
-                    HorizontalAlignment="Stretch"
-                    IsEnabled="False"
-                    Click="CancelButton_Click"/>
-            <!-- 進捗とログ -->
-            <ProgressRing x:Name="LoadingRing" IsActive="False" Width="32" Height="32" HorizontalAlignment="Center"/>
-            <ScrollViewer Height="200" BorderBrush="Gray" BorderThickness="1">
-                <TextBlock x:Name="ResultText" Text="" TextWrapping="Wrap" Padding="8" IsTextSelectionEnabled="True"/>
-            </ScrollViewer>
+        <StackPanel Spacing="16">
+            <!-- タイトル -->
+            <TextBlock Text="ダウンロード"
+                       FontSize="24"
+                       FontWeight="Bold"
+                       HorizontalAlignment="Left" />
+            <!-- ダウンロード -->
+            <Border Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                    BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                    BorderThickness="1"
+                    CornerRadius="8"
+                    Padding="16">
+                <StackPanel HorizontalAlignment="Left"
+                            VerticalAlignment="Center"
+                            Spacing="12">
+                    <!-- URL欄 -->
+                    <StackPanel Orientation="Vertical" 
+                                HorizontalAlignment="Left"
+                                Spacing="8">
+                        <TextBlock Text="動画のURL"
+                                   Opacity="0.6"
+                                   VerticalAlignment="Center"/>
+                        <StackPanel Orientation="Horizontal"
+                                    HorizontalAlignment="Left"
+                                    Spacing="8">
+                            <TextBox x:Name="UrlTextBox"
+                                     PlaceholderText = "URLを入力してください"
+                                     Width="300"
+                                     HorizontalAlignment="Center" />
+                            <Button x:Name="DownloadButton"
+                                    Content="ダウンロード"
+                                    HorizontalAlignment="Stretch"
+                                    Click="DownloadButton_Click"/>
+                        </StackPanel>
+                    </StackPanel>
+                    <!-- オプション設定 -->
+                    <StackPanel Orientation="Horizontal"
+                                HorizontalAlignment="Center"
+                                Spacing="16">
+                        <!-- 画質 -->
+                        <StackPanel Orientation="Vertical"
+                                    HorizontalAlignment="Left"
+                                    Spacing="8">
+                            <TextBlock Text="画質"
+                                       Opacity="0.6"
+                                       VerticalAlignment="Center"/>
+                            <ComboBox x:Name="QualityComboBox"
+                                      Width="150"
+                                      HorizontalAlignment="Left"/>
+                        </StackPanel>
+                        <!-- ファイル形式 -->
+                        <StackPanel Orientation="Vertical"
+                                    HorizontalAlignment="Left"
+                                    Spacing="8">
+                            <TextBlock Text="ファイル形式"
+                                       Opacity="0.6"
+                                       VerticalAlignment="Center"/>
+                            <ComboBox x:Name="FormatComboBox"
+                                      Width="150"
+                                      HorizontalAlignment="Left"/>
+                        </StackPanel>
+                    </StackPanel>
+                        <!-- 進捗とログ -->
+                    <ProgressRing x:Name="LoadingRing" IsActive="False" Width="32" Height="32" HorizontalAlignment="Center"/>
+                    <ScrollViewer Height="200" BorderBrush="Gray" BorderThickness="1">
+                        <TextBlock x:Name="ResultText" Text="" TextWrapping="Wrap" Padding="8" IsTextSelectionEnabled="True"/>
+                    </ScrollViewer>
+                </StackPanel>
+            </Border>
         </StackPanel>
     </Grid>
 </Page>

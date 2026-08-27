@@ -13,6 +13,7 @@ public partial class App : Application
 {
     // シングルトンインスタンスを作成
     public static AppSettingsService Settings { get; } = new();
+    public static ToolsManagerService Tools { get; } = new();
     public static DownloadQueueService Queue { get; } = new();
     public static DownloadService Downloader { get; } = new();
 

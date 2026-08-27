@@ -1,7 +1,60 @@
-﻿namespace FreeDownloader.Services;
+﻿using System.ComponentModel;
+using System.Runtime.CompilerServices;
 
-public class AppSettingsService
+namespace FreeDownloader.Services;
+
+public class AppSettingsService : INotifyPropertyChanged
 {
-    public string DownloadDirectory { get; set; } = @"C:\Users\daizu\Downloads\yt-dlp";
-    public string YtDlpExecutablePath { get; set; } = @"C:\Users\daizu\AppData\Local\Microsoft\WinGet\Links\yt-dlp.exe";
+    public event PropertyChangedEventHandler? PropertyChanged;
+
+    private string _downloadDirectory = @"C:\Users\daizu\Downloads\yt-dlp";
+    public string DownloadDirectory
+    {
+        get => _downloadDirectory;
+        set
+        {
+            if (_downloadDirectory == value) return;
+            _downloadDirectory = value;
+            OnPropertyChanged(); // ここでUIに通知
+        }
+    }
+
+    private bool _useManagedTools = true;
+    public bool UseManagedTools
+    {
+        get => _useManagedTools;
+        set
+        {
+            if (_useManagedTools == value) return;
+            _useManagedTools = value;
+            OnPropertyChanged();
+        }
+    }
+
+    private string _ytDlpExecutablePath = string.Empty;
+    public string YtDlpExecutablePath
+    {
+        get => _ytDlpExecutablePath;
+        set
+        {
+            if (_ytDlpExecutablePath == value) return;
+            _ytDlpExecutablePath = value;
+            OnPropertyChanged();
+        }
+    }
+
+    private string _ffmpegExecutablePath = string.Empty;
+    public string FfmpegExecutablePath
+    {
+        get => _ffmpegExecutablePath;
+        set
+        {
+            if (_ffmpegExecutablePath == value) return;
+            _ffmpegExecutablePath = value;
+            OnPropertyChanged();
+        }
+    }
+
+    private void OnPropertyChanged([CallerMemberName] string? name = null)
+        => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
 }

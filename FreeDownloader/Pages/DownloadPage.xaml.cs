@@ -56,7 +56,7 @@ public sealed partial class DownloadPage : Page
 
         // UIをロック
         DownloadButton.IsEnabled = false;
-        CancelButton.IsEnabled = true;
+        //CancelButton.IsEnabled = true;
         LoadingRing.IsActive = true;
         ResultText.Text = $"実行開始: {url}\n";
 
@@ -88,7 +88,7 @@ public sealed partial class DownloadPage : Page
         finally
         {
             DownloadButton.IsEnabled = true;
-            CancelButton.IsEnabled = false;
+            //CancelButton.IsEnabled = false;
             LoadingRing.IsActive = false;
             _cts?.Dispose();
             _cts = null;

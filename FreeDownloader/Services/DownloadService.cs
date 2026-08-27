@@ -7,13 +7,31 @@ public class DownloadService
 {
     // ログを外部に通知するイベント
     public event Action<string>? OutputReceived;
-    public async Task<int> DownloadAsync(string url)
-    {
-        var exePath = "C:\\Users\\daizu\\AppData\\Local\\Microsoft\\WinGet\\Links\\yt-dlp.exe";
-        var arguments = $"\"{url}\" -o \"C:\\Users\\daizu\\Downloads\\yt-dlp\\%(title)s.%(ext)s\"";
+    private readonly ToolsManagerService _tools;
 
-        return await RunCliAsync(exePath, arguments, CancellationToken.None);
+    public DownloadService() : this(App.Settings) { }
+
+    public DownloadService(AppSettingsService settings)
+    {
+        _tools = new ToolsManagerService(settings);
     }
+
+    public async Task<int> DownloadAsync(string url, CancellationToken ct = default)
+    {
+        var exePath = await _tools.EnsureYtDlpAsync(ct: ct);
+        if (!File.Exists(exePath))
+            throw new FileNotFoundException($"yt-dlpが見つかりません: {exePath}");
+
+        var outputDir = App.Settings.DownloadDirectory;
+        Directory.CreateDirectory(outputDir);
+
+        var ffmpegPath = _tools.ResolveFfmpegPath();
+        var ffmpegArg = File.Exists(ffmpegPath) ? $" --ffmpeg-location \"{Path.GetDirectoryName(ffmpegPath)}\"" : "";
+        var arguments = $"\"{url}\" -o \"{Path.Combine(outputDir, "%(title)s.%(ext)s")}\"{ffmpegArg}";
+
+        return await RunCliAsync(exePath, arguments, ct);
+    }
+    // wingetを実行するメソッド
     // CLIを裏で実行する汎用メソッド
     private async Task<int> RunCliAsync(string fileName, string arguments, CancellationToken ct)
     {
