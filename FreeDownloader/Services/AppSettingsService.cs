@@ -54,6 +54,18 @@ public class AppSettingsService : INotifyPropertyChanged
             OnPropertyChanged();
         }
     }
+    
+    private string _denoExecutablePath = string.Empty;
+    public string DenoExecutablePath
+    {
+        get => _denoExecutablePath;
+        set
+        {
+            if (_denoExecutablePath == value) return;
+            _denoExecutablePath = value;
+            OnPropertyChanged();
+        }
+    }
 
     private void OnPropertyChanged([CallerMemberName] string? name = null)
         => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
