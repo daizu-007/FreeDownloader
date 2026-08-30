@@ -3,3 +3,9 @@ obj/
 /packages/
 riderModule.iml
 /_ReSharper.Caches/
+
+# 配布用ビルド成果物
+dist/
+
+# MSBuildのビルドログ
+*.binlog
