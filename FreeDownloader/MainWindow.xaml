@@ -28,12 +28,13 @@
                         Grid.Row="1"
                         IsBackButtonVisible="Collapsed"
                         IsSettingsVisible="False"
-                        PaneDisplayMode="LeftCompact"
+                        PaneDisplayMode="Auto"
                         SelectionChanged="NavView_SelectionChanged"
-                        Loaded="NavView_Loaded">
+                        Loaded="NavView_Loaded"
+                        IsPaneOpen="True">
             <NavigationView.MenuItems>
                 <NavigationViewItem Content="ダウンロード" Tag="Download" Icon="Download"/>
-                <NavigationViewItem Content="キュー" Tag="Queue" Icon="List"/>
+                <NavigationViewItem Content="キュー" Tag="Queue" Icon="Clock"/>
                 <NavigationViewItem Content="設定" Tag="Settings" Icon="Setting"/>
             </NavigationView.MenuItems>
             <Frame x:Name="RootFrame" />

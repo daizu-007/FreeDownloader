@@ -14,11 +14,44 @@
                     BorderThickness="1"
                     CornerRadius="8"
                     Padding="16">
-                <StackPanel Spacing="8">
+                <StackPanel Spacing="12">
+                    <TextBlock Text="ダウンロード" FontSize="16" FontWeight="SemiBold"/>
                     <TextBlock Text="ダウンロードディレクトリ" FontWeight="SemiBold"/>
                     <TextBox Text="{x:Bind Settings.DownloadDirectory, Mode=TwoWay}" PlaceholderText="ダウンロード先のディレクトリを入力してください"/>
+                    <TextBlock Text="ブラウザのCookieを使用する" FontWeight="SemiBold"/>
+                    <ComboBox x:Name="CookieBrowserComboBox"
+                              SelectedValuePath="Tag"
+                              SelectedValue="{x:Bind Settings.CookieBrowser, Mode=TwoWay}"
+                              Width="200"
+                              HorizontalAlignment="Left">
+                        <ComboBoxItem Content="使用しない" Tag="none"/>
+                        <ComboBoxItem Content="Chrome" Tag="chrome"/>
+                        <ComboBoxItem Content="Microsoft Edge" Tag="edge"/>
+                        <ComboBoxItem Content="Firefox" Tag="firefox"/>
+                        <ComboBoxItem Content="Brave" Tag="brave"/>
+                        <ComboBoxItem Content="Vivaldi" Tag="vivaldi"/>
+                        <ComboBoxItem Content="Opera" Tag="opera"/>
+                    </ComboBox>
+                    <TextBlock Text="YouTubeのボットチェックを回避するため、選択したブラウザに保存されたCookieをyt-dlpに渡します。Chrome系のブラウザは完全に終了した状態で実行してください。"
+                               Opacity="0.6"
+                               TextWrapping="Wrap"/>
+                </StackPanel>
+            </Border>
+            <Border Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                    BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                    BorderThickness="1"
+                    CornerRadius="8"
+                    Padding="16">
+                <StackPanel Spacing="12">
+                    <TextBlock Text="ツールの管理" FontSize="16" FontWeight="SemiBold"/>
+                    <ToggleSwitch Header="アプリ管理のツールを使用する(推奨)"
+                                  IsOn="{x:Bind Settings.UseManagedTools, Mode=TwoWay}"/>
                     <TextBlock Text="yt-dlpの実行ファイルパス" FontWeight="SemiBold"/>
                     <TextBox Text="{x:Bind Settings.YtDlpExecutablePath, Mode=TwoWay}" PlaceholderText="yt-dlpの実行ファイルパスを入力してください"/>
+                    <TextBlock Text="ffmpegの実行ファイルパス" FontWeight="SemiBold"/>
+                    <TextBox Text="{x:Bind Settings.FfmpegExecutablePath, Mode=TwoWay}" PlaceholderText="ffmpegの実行ファイルパスを入力してください"/>
+                    <TextBlock Text="Denoの実行ファイルパス" FontWeight="SemiBold"/>
+                    <TextBox Text="{x:Bind Settings.DenoExecutablePath, Mode=TwoWay}" PlaceholderText="Denoの実行ファイルパスを入力してください"/>
                 </StackPanel>
             </Border>
         </StackPanel>

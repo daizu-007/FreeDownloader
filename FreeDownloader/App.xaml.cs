@@ -1,4 +1,4 @@
-﻿using FreeDownloader.Services;
+﻿﻿using FreeDownloader.Services;
 using Microsoft.UI.Xaml;
 
 // To learn more about WinUI, the WinUI project structure,
@@ -14,8 +14,8 @@ public partial class App : Application
     // シングルトンインスタンスを作成
     public static AppSettingsService Settings { get; } = new();
     public static ToolsManagerService Tools { get; } = new();
-    public static DownloadQueueService Queue { get; } = new();
     public static DownloadService Downloader { get; } = new();
+    public static DownloadQueueService Queue { get; } = new(Downloader);
 
     private Window? _window;
 
@@ -34,6 +34,9 @@ public partial class App : Application
     /// <param name="args">Details about the launch request and process.</param>
     protected override void OnLaunched(Microsoft.UI.Xaml.LaunchActivatedEventArgs args)
     {
+        // ウィンドウを作る前に保存済みの設定を読み込む
+        Settings.Load();
+
         _window = new MainWindow();
         _window.Activate();
     }

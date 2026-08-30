@@ -6,6 +6,9 @@ namespace FreeDownloader.Services;
 
 public class ToolsManagerService
 {
+    // CLIのサービス
+    public CliProcessService Cli { get; } = new();
+    
     private static readonly HttpClient Http = new()
     {
         Timeout = TimeSpan.FromMinutes(10)
@@ -44,6 +47,41 @@ public class ToolsManagerService
     public static string ManagedFfmpegPath => Path.Combine(ManagedToolsDirectory, "ffmpeg.exe");
     public static string ManagedFfprobePath => Path.Combine(ManagedToolsDirectory, "ffprobe.exe");
     public static string ManagedDenoPath => Path.Combine(ManagedToolsDirectory, "deno.exe");
+    
+    // マーカーファイルのパス
+    public static string ManagedFfmpegMarkerPath => Path.Combine(ManagedToolsDirectory, "ffmpeg-latest-update-date.txt");
+    
+    // ffmpegの最新ビルド日時を取得
+    private static async Task<DateTimeOffset?> GetLatestFfmpegBuildDateAsync(CancellationToken ct)
+    {
+        using var req = new HttpRequestMessage(HttpMethod.Head, FfmpegZipUrl);
+        using var resp = await Http.SendAsync(req, HttpCompletionOption.ResponseHeadersRead, ct);
+        resp.EnsureSuccessStatusCode();
+        return resp.Content.Headers.LastModified;
+    }
+
+    private static DateTimeOffset? ReadInstalledBuildDate()
+    {
+        try
+        {
+            var p = ManagedFfmpegMarkerPath;
+            return File.Exists(p) && DateTimeOffset.TryParse(File.ReadAllText(p).Trim(), out var d)
+                ? d
+                : null;
+        }
+        catch { return null; }
+    }
+    
+    // ffmpegのアップデートがあるかどうか
+    public async Task<bool> IsFfmpegUpdateAvailableAsync(CancellationToken ct = default)
+    {
+        if (!_settings.UseManagedTools) return false;
+        var latest = await GetLatestFfmpegBuildDateAsync(ct);
+        var installed = ReadInstalledBuildDate();
+        if (latest is null) return false;          // ネットワーク失敗等は「更新なし」扱い
+        if (installed is null) return true;        // 未インストールなら更新(≒インストール)が必要
+        return latest.Value > installed.Value;     // 日時比較（マーカーは同じ値を保存するので誤差なし）
+    }
 
     public string ResolveYtDlpPath()
     {
@@ -92,6 +130,43 @@ public class ToolsManagerService
             return ManagedDenoPath;
         }
     }
+    
+    // ツールの更新
+    public async Task UpdateAllToolsAsync(IProgress<(string tool, double progress)>? progress = null, CancellationToken ct = default)
+    {
+        if (!_settings.UseManagedTools) return;
+
+        var ytProgress = new Progress<double>(p => progress?.Report(("yt-dlp", p)));
+        var ffProgress = new Progress<double>(p => progress?.Report(("ffmpeg", p)));
+        var denoProgress = new Progress<double>(p => progress?.Report(("deno", p)));
+        await UpdateYtDlpAsync(ytProgress, ct);
+        await UpdateFfmpegAsync(ffProgress, ct);
+        await UpdateDenoAsync(denoProgress, ct);
+    }
+    
+    public async Task UpdateYtDlpAsync(IProgress<double>? progress = null, CancellationToken ct = default)
+    {
+        if (!_settings.UseManagedTools) return;
+        await Cli.RunCliAsync(ResolveYtDlpPath(), "-U", ct);
+    }
+    
+    public async Task UpdateFfmpegAsync(IProgress<double>? progress = null, CancellationToken ct = default)
+    {
+        if (!_settings.UseManagedTools) return;
+        var latest = await GetLatestFfmpegBuildDateAsync(ct);
+        if (await IsFfmpegUpdateAvailableAsync(ct))
+        {
+            await InstallFfmpegAsync(progress, ct);
+            if (latest.HasValue)
+                await File.WriteAllTextAsync(ManagedFfmpegMarkerPath, latest.Value.ToString("o"), ct);
+        }
+    }
+    
+    public async Task UpdateDenoAsync(IProgress<double>? progress = null, CancellationToken ct = default)
+    {
+        if (!_settings.UseManagedTools) return;
+        await Cli.RunCliAsync(ResolveDenoPath(), "upgrade", ct);
+    }
 
     public bool IsManagedYtDlpInstalled => File.Exists(ManagedYtDlpPath);
     public bool IsManagedFfmpegInstalled => File.Exists(ManagedFfmpegPath) && File.Exists(ManagedFfprobePath);
@@ -137,6 +212,12 @@ public class ToolsManagerService
         var ytProgress = new Progress<double>(p => progress?.Report(("yt-dlp", p)));
         var ffProgress = new Progress<double>(p => progress?.Report(("ffmpeg", p)));
         var denoProgress = new Progress<double>(p => progress?.Report(("deno", p)));
+        await EnsureYtDlpAsync(ytProgress, ct);
+        await EnsureFfmpegAsync(ffProgress, ct);
+        await EnsureDenoAsync(denoProgress, ct);
+        
+        await UpdateAllToolsAsync(progress, ct);
+        
         await EnsureYtDlpAsync(ytProgress, ct);
         await EnsureFfmpegAsync(ffProgress, ct);
         await EnsureDenoAsync(denoProgress, ct);

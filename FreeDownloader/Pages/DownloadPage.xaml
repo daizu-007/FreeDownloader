@@ -37,14 +37,14 @@
                                      Width="300"
                                      HorizontalAlignment="Center" />
                             <Button x:Name="DownloadButton"
-                                    Content="ダウンロード"
+                                    Content="キューに追加"
                                     HorizontalAlignment="Stretch"
                                     Click="DownloadButton_Click"/>
                         </StackPanel>
                     </StackPanel>
                     <!-- オプション設定 -->
                     <StackPanel Orientation="Horizontal"
-                                HorizontalAlignment="Center"
+                                HorizontalAlignment="Left"
                                 Spacing="16">
                         <!-- 画質 -->
                         <StackPanel Orientation="Vertical"
@@ -55,7 +55,15 @@
                                        VerticalAlignment="Center"/>
                             <ComboBox x:Name="QualityComboBox"
                                       Width="150"
-                                      HorizontalAlignment="Left"/>
+                                      HorizontalAlignment="Left"
+                                      SelectedIndex="0">
+                                <!-- Tag に yt-dlp に渡す値を入れておく -->
+                                <ComboBoxItem Content="最高画質" Tag="best" />
+                                <ComboBoxItem Content="1080p" Tag="1080" />
+                                <ComboBoxItem Content="720p" Tag="720" />
+                                <ComboBoxItem Content="480p" Tag="480" />
+                                <ComboBoxItem Content="360p" Tag="360" />
+                            </ComboBox>
                         </StackPanel>
                         <!-- ファイル形式 -->
                         <StackPanel Orientation="Vertical"
@@ -66,14 +74,27 @@
                                        VerticalAlignment="Center"/>
                             <ComboBox x:Name="FormatComboBox"
                                       Width="150"
-                                      HorizontalAlignment="Left"/>
+                                      HorizontalAlignment="Left"
+                                      SelectedIndex="0">
+                                <ComboBoxItem Content="MP4" Tag="mp4" />
+                                <ComboBoxItem Content="MKV" Tag="mkv" />
+                                <ComboBoxItem Content="WebM" Tag="webm" />
+                            </ComboBox>
+                        </StackPanel>
+                        <!-- 音声のみにするか -->
+                        <StackPanel Orientation="Vertical"
+                                    HorizontalAlignment="Left"
+                                    Spacing="8">
+                            <TextBlock Text="オーディオのみ"
+                                       Opacity="0.6"
+                                       VerticalAlignment="Center"/>
+                            <ToggleSwitch x:Name="AudioOnlyToggle"
+                                          HorizontalAlignment="Left"
+                                          Toggled="AudioOnlyToggle_Toggled"/>
                         </StackPanel>
                     </StackPanel>
-                        <!-- 進捗とログ -->
-                    <ProgressRing x:Name="LoadingRing" IsActive="False" Width="32" Height="32" HorizontalAlignment="Center"/>
-                    <ScrollViewer Height="200" BorderBrush="Gray" BorderThickness="1">
-                        <TextBlock x:Name="ResultText" Text="" TextWrapping="Wrap" Padding="8" IsTextSelectionEnabled="True"/>
-                    </ScrollViewer>
+                    <!-- 状態メッセージ -->
+                    <TextBlock x:Name="ResultText" Text="" TextWrapping="Wrap"/>
                 </StackPanel>
             </Border>
         </StackPanel>

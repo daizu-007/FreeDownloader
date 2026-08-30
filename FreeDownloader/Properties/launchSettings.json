@@ -1,9 +1,6 @@
 {
   "profiles": {
-    "FreeDownloader (Package)": {
-      "commandName": "MsixPackage"
-    },
-    "FreeDownloader (Unpackaged)": {
+    "FreeDownloader": {
       "commandName": "Project"
     }
   }
