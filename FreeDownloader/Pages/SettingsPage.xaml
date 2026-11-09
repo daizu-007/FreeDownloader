@@ -50,8 +50,6 @@
                     <TextBox Text="{x:Bind Settings.YtDlpExecutablePath, Mode=TwoWay}" PlaceholderText="yt-dlpの実行ファイルパスを入力してください"/>
                     <TextBlock Text="ffmpegの実行ファイルパス" FontWeight="SemiBold"/>
                     <TextBox Text="{x:Bind Settings.FfmpegExecutablePath, Mode=TwoWay}" PlaceholderText="ffmpegの実行ファイルパスを入力してください"/>
-                    <TextBlock Text="Denoの実行ファイルパス" FontWeight="SemiBold"/>
-                    <TextBox Text="{x:Bind Settings.DenoExecutablePath, Mode=TwoWay}" PlaceholderText="Denoの実行ファイルパスを入力してください"/>
                 </StackPanel>
             </Border>
         </StackPanel>
