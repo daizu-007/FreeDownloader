@@ -1,0 +1,100 @@
+name: Build and release
+
+on:
+  push:
+    branches: [master]
+    tags: ['v[0-9]+.[0-9]+.[0-9]+']
+  pull_request:
+    branches: [master]
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    name: Build ${{ matrix.platform }}
+    if: ${{ !github.event.deleted }}
+    runs-on: windows-2025
+    strategy:
+      matrix:
+        include:
+          - platform: x64
+            runtime: win-x64
+          - platform: ARM64
+            runtime: win-arm64
+          - platform: x86
+            runtime: win-x86
+
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+
+      - uses: actions/setup-dotnet@v6
+        with:
+          dotnet-version: '10.0.x'
+          dotnet-quality: ga
+
+      - name: Publish and package
+        shell: pwsh
+        env:
+          PLATFORM: ${{ matrix.platform }}
+          RUNTIME: ${{ matrix.runtime }}
+        run: |
+          $publishDir = Join-Path $env:RUNNER_TEMP 'FreeDownloader-publish'
+          dotnet publish FreeDownloader/FreeDownloader.csproj --configuration Release `
+            --runtime $env:RUNTIME --self-contained true "-p:Platform=$env:PLATFORM" `
+            -p:PublishProfile= --output $publishDir
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+
+          foreach ($file in 'FreeDownloader.exe', 'FreeDownloader.pri', 'coreclr.dll', 'Microsoft.UI.Xaml.dll') {
+            if (!(Test-Path (Join-Path $publishDir $file) -PathType Leaf)) {
+              throw "Missing publish output: $file"
+            }
+          }
+
+          if ($env:GITHUB_REF_TYPE -ne 'tag') { return }
+
+          $zipPath = Join-Path $env:RUNNER_TEMP "FreeDownloader_$env:RUNTIME.zip"
+          Copy-Item -LiteralPath LICENSE, NOTICE.md -Destination $publishDir
+          [System.IO.Compression.ZipFile]::CreateFromDirectory($publishDir, $zipPath)
+
+      - name: Upload ZIP to Actions
+        if: github.ref_type == 'tag'
+        uses: actions/upload-artifact@v7
+        with:
+          name: FreeDownloader_${{ matrix.runtime }}
+          path: ${{ runner.temp }}/FreeDownloader_${{ matrix.runtime }}.zip
+          if-no-files-found: error
+          compression-level: 0
+          retention-days: 7
+          overwrite: true
+
+  release:
+    name: Publish GitHub Release
+    if: github.event_name == 'push' && github.ref_type == 'tag'
+    needs: build
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: write
+    concurrency:
+      group: release-${{ github.ref }}
+
+    steps:
+      - name: Download build ZIPs
+        uses: actions/download-artifact@v8
+        with:
+          pattern: FreeDownloader_win-*
+          path: release-assets
+          merge-multiple: true
+
+      - name: Publish Release and attach ZIPs
+        uses: softprops/action-gh-release@8a0cd651e5b2365bd640854a3fa5dfc70e4875f3 # v3.0.4
+        with:
+          generate_release_notes: true
+          overwrite_files: false
+          fail_on_unmatched_files: true
+          files: |
+            release-assets/FreeDownloader_win-x64.zip
+            release-assets/FreeDownloader_win-arm64.zip
+            release-assets/FreeDownloader_win-x86.zip

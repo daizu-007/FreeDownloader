@@ -15,7 +15,8 @@
         <WindowsPackageType>None</WindowsPackageType>
         <!-- Windows App SDK ランタイムを実行ファイルに同梱する(別途ランタイム不要) -->
         <WindowsAppSDKSelfContained>true</WindowsAppSDKSelfContained>
-        <EnableMsixTooling>false</EnableMsixTooling>
+        <!-- publish 時に XAML リソース(PRI)を出力へ含めるために必須。false にすると公開アプリが起動直後に落ちる -->
+        <EnableMsixTooling>true</EnableMsixTooling>
         <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>enable</Nullable>
     </PropertyGroup>
@@ -34,10 +35,10 @@
     </ItemGroup>
 
     <!-- Publish Properties -->
+    <!-- WinUI 3 はトリミング(PublishTrimmed)・シングルファイル(PublishSingleFile)に非対応 -->
     <PropertyGroup>
-        <PublishReadyToRun Condition="'$(Configuration)' == 'Debug'">False</PublishReadyToRun>
-        <PublishReadyToRun Condition="'$(Configuration)' != 'Debug'">True</PublishReadyToRun>
-        <PublishTrimmed Condition="'$(Configuration)' == 'Debug'">False</PublishTrimmed>
-        <PublishTrimmed Condition="'$(Configuration)' != 'Debug'">True</PublishTrimmed>
+        <PublishTrimmed>false</PublishTrimmed>
+        <PublishSingleFile>false</PublishSingleFile>
+        <PublishReadyToRun>false</PublishReadyToRun>
     </PropertyGroup>
 </Project>
