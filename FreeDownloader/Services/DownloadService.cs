@@ -47,6 +47,9 @@ public class DownloadService
     public async Task<int> DownloadAsync(string url, DownloadOptions? options = null, CancellationToken ct = default, string? tempDir = null)
     {
         LastError = null;
+        var browserArgument = BrowserCookieSource.GetBrowserArgument(_settings);
+        var cookieFile = BrowserCookieSource.GetCookieFile(_settings);
+
         await _tools.EnsureAllToolsAsync(ct: ct);
         var exePath = await _tools.EnsureYtDlpAsync(ct: ct);
         if (!File.Exists(exePath))
@@ -57,40 +60,57 @@ public class DownloadService
         if (tempDir is not null)
             Directory.CreateDirectory(tempDir);
 
+        const string outputTemplate = "%(title)s.%(ext)s";
+        List<string> arguments = tempDir is not null
+            ? ["-o", outputTemplate, "-P", $"home:{outputDir}", "-P", $"temp:{tempDir}"]
+            : ["-o", Path.Combine(outputDir, outputTemplate)];
+
         var ffmpegPath = _tools.ResolveFfmpegPath();
-        var ffmpegArg = File.Exists(ffmpegPath) ? $" --ffmpeg-location \"{Path.GetDirectoryName(ffmpegPath)}\"" : "";
+        if (File.Exists(ffmpegPath))
+            arguments.AddRange(["--ffmpeg-location", Path.GetDirectoryName(ffmpegPath)!]);
 
         // 画質・形式・音声抽出のオプションを yt-dlp の引数に変換する
         var opts = options ?? new DownloadOptions();
-        string optionArgs;
         if (opts.AudioOnly)
         {
             // -x で音声ストリームだけを抽出。ffmpeg による再エンコードが必要
-            optionArgs = " -x --audio-format mp3";
+            arguments.AddRange(["-x", "--audio-format", "mp3"]);
         }
         else
         {
             // 画質指定: best は yt-dlp のデフォルト挙動(最高画質の動画+音声)。
             // 数値指定は「その高さ以下の最高」を選ばせる。bv* だけでは音声がないため
             // +ba で音声と結合し、結合できない場合のフォールバックとして best も併記するのが定石
-            optionArgs = opts.Quality == "best"
-                ? " -f \"bv*+ba/b\""
-                : $" -f \"bv*[height<={opts.Quality}]+ba/b[height<={opts.Quality}]\"";
-            // 映像と音声をマージするときのコンテナ形式を指定
-            optionArgs += $" --merge-output-format {opts.Format}";
+            var format = opts.Quality == "best"
+                ? "bv*+ba/b"
+                : $"bv*[height<={opts.Quality}]+ba/b[height<={opts.Quality}]";
+            arguments.AddRange(["-f", format, "--merge-output-format", opts.Format]);
         }
 
-        // tempDir指定時は一時ファイルを専用ディレクトリに隔離し、完了時にhomeへ移動させる
-        var arguments = tempDir is not null
-            ? $"\"{url}\" -o \"%(title)s.%(ext)s\" -P \"home:{outputDir}\" -P \"temp:{tempDir}\"{optionArgs}{ffmpegArg}"
-            : $"\"{url}\" -o \"{Path.Combine(outputDir, "%(title)s.%(ext)s")}\"{optionArgs}{ffmpegArg}";
+        if (browserArgument is not null)
+            arguments.AddRange(["--cookies-from-browser", browserArgument]);
 
-        // 設定で指定された場合、ブラウザからCookieを借りて認証する
-        // (YouTubeの「Sign in to confirm you're not a bot」対策)
-        var cookieBrowser = _settings.CookieBrowser;
-        if (!string.IsNullOrWhiteSpace(cookieBrowser) && cookieBrowser != "none")
-            arguments += $" --cookies-from-browser {cookieBrowser}";
+        if (cookieFile is null)
+        {
+            arguments.AddRange(["--", url]);
+            return await Cli.RunCliAsync(exePath, arguments, ct);
+        }
 
-        return await Cli.RunCliAsync(exePath, arguments, ct);
+        // yt-dlpは--cookiesで渡したファイルに書き戻すため、ダウンロードごとのコピーを渡す。
+        var workingDirectory = Directory.CreateTempSubdirectory("FreeDownloader-cookies-");
+        try
+        {
+            var workingCopy = Path.Combine(workingDirectory.FullName, "cookies.txt");
+            File.Copy(cookieFile, workingCopy);
+            File.SetAttributes(workingCopy, FileAttributes.Normal);
+            arguments.AddRange(["--cookies", workingCopy, "--", url]);
+            return await Cli.RunCliAsync(exePath, arguments, ct);
+        }
+        finally
+        {
+            try { workingDirectory.Delete(recursive: true); }
+            catch (IOException) { }
+            catch (UnauthorizedAccessException) { }
+        }
     }
 }

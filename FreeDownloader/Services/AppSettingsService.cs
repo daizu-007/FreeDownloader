@@ -44,12 +44,32 @@ public class AppSettingsService : INotifyPropertyChanged
         set => Set(ref _denoExecutablePath, value);
     }
 
-    // クッキーを借りるブラウザ("none" または chrome / edge / firefox など)
     private string _cookieBrowser = "none";
     public string CookieBrowser
     {
         get => _cookieBrowser;
         set => Set(ref _cookieBrowser, value);
+    }
+
+    private string _customCookieSource = "firefox";
+    public string CustomCookieSource
+    {
+        get => _customCookieSource;
+        set => Set(ref _customCookieSource, value);
+    }
+
+    private string _customCookieProfilePath = string.Empty;
+    public string CustomCookieProfilePath
+    {
+        get => _customCookieProfilePath;
+        set => Set(ref _customCookieProfilePath, value);
+    }
+
+    private string _customCookieFilePath = string.Empty;
+    public string CustomCookieFilePath
+    {
+        get => _customCookieFilePath;
+        set => Set(ref _customCookieFilePath, value);
     }
 
     // ===== 永続化 =====
@@ -85,6 +105,9 @@ public class AppSettingsService : INotifyPropertyChanged
                 if (dto.FfmpegExecutablePath is not null) _ffmpegExecutablePath = dto.FfmpegExecutablePath;
                 if (dto.DenoExecutablePath is not null) _denoExecutablePath = dto.DenoExecutablePath;
                 if (dto.CookieBrowser is not null) _cookieBrowser = dto.CookieBrowser;
+                if (dto.CustomCookieSource is not null) _customCookieSource = dto.CustomCookieSource;
+                if (dto.CustomCookieProfilePath is not null) _customCookieProfilePath = dto.CustomCookieProfilePath;
+                if (dto.CustomCookieFilePath is not null) _customCookieFilePath = dto.CustomCookieFilePath;
             }
             finally
             {
@@ -103,6 +126,9 @@ public class AppSettingsService : INotifyPropertyChanged
         OnPropertyChanged(nameof(FfmpegExecutablePath));
         OnPropertyChanged(nameof(DenoExecutablePath));
         OnPropertyChanged(nameof(CookieBrowser));
+        OnPropertyChanged(nameof(CustomCookieSource));
+        OnPropertyChanged(nameof(CustomCookieProfilePath));
+        OnPropertyChanged(nameof(CustomCookieFilePath));
     }
 
     public void Save()
@@ -113,7 +139,10 @@ public class AppSettingsService : INotifyPropertyChanged
             YtDlpExecutablePath,
             FfmpegExecutablePath,
             DenoExecutablePath,
-            CookieBrowser);
+            CookieBrowser,
+            CustomCookieSource,
+            CustomCookieProfilePath,
+            CustomCookieFilePath);
 
         Directory.CreateDirectory(Path.GetDirectoryName(SettingsFilePath)!);
         File.WriteAllText(SettingsFilePath, JsonSerializer.Serialize(dto, AppSettingsJsonContext.Default.SettingsDto));
@@ -139,7 +168,10 @@ public sealed record SettingsDto(
     string? YtDlpExecutablePath,
     string? FfmpegExecutablePath,
     string? DenoExecutablePath,
-    string? CookieBrowser);
+    string? CookieBrowser,
+    string? CustomCookieSource,
+    string? CustomCookieProfilePath,
+    string? CustomCookieFilePath);
 
 // PublishTrimmed が有効な Release ビルドでも正しく動くように、
 // シリアライザーをソース生成する(JsonSerializerContext)

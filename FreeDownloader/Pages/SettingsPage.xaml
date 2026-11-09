@@ -6,8 +6,8 @@
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     mc:Ignorable="d">
-    <Grid Padding="24">
-        <StackPanel Spacing="16">
+    <ScrollViewer>
+        <StackPanel Padding="24" Spacing="16">
             <TextBlock Text="設定" FontSize="24" FontWeight="Bold"/>
             <Border Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
                     BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
@@ -31,8 +31,38 @@
                         <ComboBoxItem Content="Brave" Tag="brave"/>
                         <ComboBoxItem Content="Vivaldi" Tag="vivaldi"/>
                         <ComboBoxItem Content="Opera" Tag="opera"/>
+                        <ComboBoxItem Content="Zen Browser" Tag="zen"/>
+                        <ComboBoxItem Content="Floorp" Tag="floorp"/>
+                        <ComboBoxItem Content="Helium" Tag="helium"/>
+                        <ComboBoxItem Content="カスタム" Tag="custom"/>
                     </ComboBox>
-                    <TextBlock Text="YouTubeのボットチェックを回避するため、選択したブラウザに保存されたCookieをyt-dlpに渡します。Chrome系のブラウザは完全に終了した状態で実行してください。"
+                    <StackPanel Spacing="8" Visibility="{x:Bind CustomCookieSettingsVisibility(Settings.CookieBrowser), Mode=OneWay}">
+                        <ComboBox Header="Cookieの読み取り方法"
+                                  SelectedValuePath="Tag"
+                                  SelectedValue="{x:Bind Settings.CustomCookieSource, Mode=TwoWay}">
+                            <ComboBoxItem Content="Firefox系のプロファイル" Tag="firefox"/>
+                            <ComboBoxItem Content="Chromium系のプロファイル" Tag="chromium"/>
+                            <ComboBoxItem Content="Cookieファイル（Netscape形式）" Tag="file"/>
+                        </ComboBox>
+                        <StackPanel Spacing="4" Visibility="{x:Bind CookieProfileVisibility(Settings.CustomCookieSource), Mode=OneWay}">
+                            <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
+                                <TextBox Header="プロファイルのフォルダー"
+                                         Text="{x:Bind Settings.CustomCookieProfilePath, Mode=TwoWay}"/>
+                                <Button Grid.Column="1" Content="参照…" VerticalAlignment="Bottom" Click="BrowseCookieProfile_Click"
+                                        AutomationProperties.Name="プロファイルのフォルダーを選択"/>
+                            </Grid>
+                            <TextBlock Text="Firefox系は about:profiles の「ルートディレクトリー」、Chromium系は chrome://version の「プロフィール パス」に表示されるフォルダーを指定してください。"
+                                       Opacity="0.6" TextWrapping="Wrap"/>
+                        </StackPanel>
+                        <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8"
+                              Visibility="{x:Bind CookieFileVisibility(Settings.CustomCookieSource), Mode=OneWay}">
+                            <TextBox Header="Cookieファイルのパス"
+                                     Text="{x:Bind Settings.CustomCookieFilePath, Mode=TwoWay}"/>
+                            <Button Grid.Column="1" Content="参照…" VerticalAlignment="Bottom" Click="BrowseCookieFile_Click"
+                                    AutomationProperties.Name="Cookieファイルを選択"/>
+                        </Grid>
+                    </StackPanel>
+                    <TextBlock Text="選択したブラウザのCookieをyt-dlpに渡し、ログインが必要なサイトで使用します。Chromium系のブラウザは完全に終了してから実行してください。直接読み取れない場合は「カスタム」でCookieファイルを指定できます。"
                                Opacity="0.6"
                                TextWrapping="Wrap"/>
                 </StackPanel>
@@ -53,5 +83,5 @@
                 </StackPanel>
             </Border>
         </StackPanel>
-    </Grid>
+    </ScrollViewer>
 </Page>
