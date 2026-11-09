@@ -49,7 +49,8 @@ public class DownloadService
     public Task<int> DownloadAsync(string url, DownloadOptions? options = null, CancellationToken ct = default, string? tempDir = null)
         => DownloadAsync(url, options, _settings.YtDlp, ct, tempDir);
 
-    internal async Task<int> DownloadAsync(string url, DownloadOptions? options, YtDlpOptions ytDlp, CancellationToken ct, string? tempDir)
+    internal async Task<int> DownloadAsync(string url, DownloadOptions? options, YtDlpOptions ytDlp, CancellationToken ct,
+        string? tempDir, IProgress<YtDlpProgress>? progress = null)
     {
         LastError = null;
         var browserArgument = BrowserCookieSource.GetBrowserArgument(_settings);
@@ -64,6 +65,9 @@ public class DownloadService
         Directory.CreateDirectory(outputDir);
         var outputTemplate = $"{ytDlp.FileNameTemplate}.%(ext)s";
         List<string> arguments = ["-o", outputTemplate, "-P", $"home:{outputDir}"];
+        if (progress is not null)
+            YtDlpProgress.AddArguments(arguments);
+
         if (tempDir is not null)
         {
             Directory.CreateDirectory(tempDir);
@@ -121,10 +125,16 @@ public class DownloadService
         if (browserArgument is not null)
             arguments.AddRange(["--cookies-from-browser", browserArgument]);
 
+        void ReportProgress(string line)
+        {
+            if (progress is not null && YtDlpProgress.Parse(line) is { } update)
+                progress.Report(update);
+        }
+
         if (cookieFile is null)
         {
             arguments.AddRange(["--", url]);
-            return await Cli.RunCliAsync(exePath, arguments, ct);
+            return await Cli.RunCliAsync(exePath, arguments, ct, ReportProgress);
         }
 
         // yt-dlpは--cookiesで渡したファイルに書き戻すため、ダウンロードごとのコピーを渡す。
@@ -135,7 +145,7 @@ public class DownloadService
             File.Copy(cookieFile, workingCopy);
             File.SetAttributes(workingCopy, FileAttributes.Normal);
             arguments.AddRange(["--cookies", workingCopy, "--", url]);
-            return await Cli.RunCliAsync(exePath, arguments, ct);
+            return await Cli.RunCliAsync(exePath, arguments, ct, ReportProgress);
         }
         finally
         {

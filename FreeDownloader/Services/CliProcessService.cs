@@ -14,15 +14,18 @@ public class CliProcessService
         => RunCliAsync(new ProcessStartInfo(fileName, arguments), ct);
 
     public Task<int> RunCliAsync(string fileName, IEnumerable<string> arguments, CancellationToken ct = default)
+        => RunCliAsync(fileName, arguments, ct, onOutput: null);
+
+    internal Task<int> RunCliAsync(string fileName, IEnumerable<string> arguments, CancellationToken ct, Action<string>? onOutput)
     {
         var startInfo = new ProcessStartInfo(fileName);
         foreach (var argument in arguments)
             startInfo.ArgumentList.Add(argument);
 
-        return RunCliAsync(startInfo, ct);
+        return RunCliAsync(startInfo, ct, onOutput);
     }
 
-    private async Task<int> RunCliAsync(ProcessStartInfo startInfo, CancellationToken ct)
+    private async Task<int> RunCliAsync(ProcessStartInfo startInfo, CancellationToken ct, Action<string>? onOutput = null)
     {
         startInfo.UseShellExecute = false;
         startInfo.RedirectStandardOutput = true;
@@ -37,8 +40,11 @@ public class CliProcessService
 
         process.OutputDataReceived += (s, args) =>
         {
-            if (args.Data != null)
-                OutputReceived?.Invoke(args.Data);
+            if (args.Data is { } line)
+            {
+                onOutput?.Invoke(line);
+                OutputReceived?.Invoke(line);
+            }
         };
         process.ErrorDataReceived += (s, args) =>
         {

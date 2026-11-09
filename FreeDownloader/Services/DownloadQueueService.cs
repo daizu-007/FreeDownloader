@@ -43,8 +43,28 @@ public class DownloadItem : INotifyPropertyChanged
             OnPropertyChanged(nameof(IsDownloading));
             OnPropertyChanged(nameof(IsPaused));
             OnPropertyChanged(nameof(IsActive));
+            OnPropertyChanged(nameof(ShowProgress));
+            OnPropertyChanged(nameof(ShowFileProgress));
+            OnPropertyChanged(nameof(IsFileProgressIndeterminate));
         }
     }
+
+    private YtDlpProgress _progress = YtDlpProgress.Preparing;
+    public YtDlpProgress Progress
+    {
+        get => _progress;
+        internal set
+        {
+            _progress = value;
+            OnPropertyChanged();
+            OnPropertyChanged(nameof(ShowFileProgress));
+            OnPropertyChanged(nameof(IsFileProgressIndeterminate));
+        }
+    }
+
+    public bool ShowProgress => IsDownloading || IsPaused;
+    public bool ShowFileProgress => IsDownloading || (IsPaused && Progress.FilePercent.HasValue);
+    public bool IsFileProgressIndeterminate => IsDownloading && !Progress.FilePercent.HasValue;
 
     // ダウンロード中なら「一時停止」を押せる
     public bool IsDownloading => Status == "ダウンロード中";
@@ -115,10 +135,17 @@ public class DownloadQueueService
             try
             {
                 // 待機中にキャンセルされていたら、ここで即座に検出する
-                item.Cts.Token.ThrowIfCancellationRequested();
+                var ct = item.Cts.Token;
+                ct.ThrowIfCancellationRequested();
 
+                item.Progress = YtDlpProgress.Preparing;
                 item.Status = "ダウンロード中";
-                int exitCode = await _downloader.DownloadAsync(item.Url, item.Options, item.YtDlp, item.Cts.Token, item.TempDir);
+                var progress = new Progress<YtDlpProgress>(update =>
+                {
+                    if (!ct.IsCancellationRequested && item.IsDownloading)
+                        item.Progress = update;
+                });
+                int exitCode = await _downloader.DownloadAsync(item.Url, item.Options, item.YtDlp, ct, item.TempDir, progress);
                 item.Status = exitCode == 0
                     ? "完了"
                     : $"エラー(終了コード {exitCode}): {_downloader.LastError ?? "詳細不明"}";
