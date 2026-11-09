@@ -1,5 +1,8 @@
+using System.ComponentModel;
+using Microsoft.UI.Composition.SystemBackdrops;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
+using Microsoft.UI.Xaml.Media;
 
 // To learn more about WinUI, the WinUI project structure,
 // and more about our project templates, see: http://aka.ms/winui-project-info.
@@ -15,10 +18,35 @@ public sealed partial class MainWindow : Window
     {
         InitializeComponent();
 
+        ApplyWindowBackdrop();
+        App.Settings.PropertyChanged += Settings_PropertyChanged;
+        Closed += (_, _) => App.Settings.PropertyChanged -= Settings_PropertyChanged;
+
         ExtendsContentIntoTitleBar = true;
         SetTitleBar(AppTitleBar);
 
         AppWindow.SetIcon("Assets/AppIcon.ico");
+    }
+
+    private void Settings_PropertyChanged(object? sender, PropertyChangedEventArgs e)
+    {
+        if (e.PropertyName == nameof(App.Settings.WindowBackdrop))
+        {
+            ApplyWindowBackdrop();
+        }
+    }
+
+    private void ApplyWindowBackdrop()
+    {
+        SystemBackdrop = App.Settings.WindowBackdrop switch
+        {
+            "MicaAlt" => new MicaBackdrop { Kind = MicaKind.BaseAlt },
+            "DesktopAcrylic" => new DesktopAcrylicBackdrop(),
+            "Solid" => null,
+            _ => new MicaBackdrop(),
+        };
+
+        SolidBackground.Visibility = SystemBackdrop is null ? Visibility.Visible : Visibility.Collapsed;
     }
 
     private void NavView_Loaded(object sender, RoutedEventArgs e)

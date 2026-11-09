@@ -15,6 +15,25 @@
                     CornerRadius="8"
                     Padding="16">
                 <StackPanel Spacing="12">
+                    <TextBlock Text="外観" FontSize="16" FontWeight="SemiBold"/>
+                    <ComboBox Header="ウィンドウの背景"
+                              SelectedValuePath="Tag"
+                              SelectedValue="{x:Bind Settings.WindowBackdrop, Mode=TwoWay}"
+                              Width="200"
+                              HorizontalAlignment="Left">
+                        <ComboBoxItem Content="Mica" Tag="Mica"/>
+                        <ComboBoxItem Content="Mica Alt" Tag="MicaAlt"/>
+                        <ComboBoxItem Content="Desktop Acrylic" Tag="DesktopAcrylic"/>
+                        <ComboBoxItem Content="単色" Tag="Solid"/>
+                    </ComboBox>
+                </StackPanel>
+            </Border>
+            <Border Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                    BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                    BorderThickness="1"
+                    CornerRadius="8"
+                    Padding="16">
+                <StackPanel Spacing="12">
                     <TextBlock Text="ダウンロード" FontSize="16" FontWeight="SemiBold"/>
                     <TextBlock Text="ダウンロードディレクトリ" FontWeight="SemiBold"/>
                     <TextBox Text="{x:Bind Settings.DownloadDirectory, Mode=TwoWay}" PlaceholderText="ダウンロード先のディレクトリを入力してください"/>

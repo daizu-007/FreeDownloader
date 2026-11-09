@@ -9,6 +9,16 @@ public class AppSettingsService : INotifyPropertyChanged
 {
     public event PropertyChangedEventHandler? PropertyChanged;
 
+    private string _windowBackdrop = "Mica";
+    public string WindowBackdrop
+    {
+        get => _windowBackdrop;
+        set
+        {
+            if (IsValidWindowBackdrop(value)) Set(ref _windowBackdrop, value);
+        }
+    }
+
     private string _downloadDirectory = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), "Downloads");
     public string DownloadDirectory
     {
@@ -99,6 +109,7 @@ public class AppSettingsService : INotifyPropertyChanged
             _suppressSave = true;
             try
             {
+                if (dto.WindowBackdrop is { } backdrop && IsValidWindowBackdrop(backdrop)) _windowBackdrop = backdrop;
                 if (dto.DownloadDirectory is not null) _downloadDirectory = dto.DownloadDirectory;
                 if (dto.UseManagedTools is not null) _useManagedTools = dto.UseManagedTools.Value;
                 if (dto.YtDlpExecutablePath is not null) _ytDlpExecutablePath = dto.YtDlpExecutablePath;
@@ -120,6 +131,7 @@ public class AppSettingsService : INotifyPropertyChanged
         }
 
         // 読み込んだ値をUIに反映させる
+        OnPropertyChanged(nameof(WindowBackdrop));
         OnPropertyChanged(nameof(DownloadDirectory));
         OnPropertyChanged(nameof(UseManagedTools));
         OnPropertyChanged(nameof(YtDlpExecutablePath));
@@ -142,11 +154,15 @@ public class AppSettingsService : INotifyPropertyChanged
             CookieBrowser,
             CustomCookieSource,
             CustomCookieProfilePath,
-            CustomCookieFilePath);
+            CustomCookieFilePath,
+            WindowBackdrop);
 
         Directory.CreateDirectory(Path.GetDirectoryName(SettingsFilePath)!);
         File.WriteAllText(SettingsFilePath, JsonSerializer.Serialize(dto, AppSettingsJsonContext.Default.SettingsDto));
     }
+
+    private static bool IsValidWindowBackdrop(string? value)
+        => value is "Mica" or "MicaAlt" or "DesktopAcrylic" or "Solid";
 
     // プロパティ共通の変更処理:値更新 → UI通知 → ファイル保存
     private void Set<T>(ref T field, T value, [CallerMemberName] string? name = null)
@@ -171,7 +187,8 @@ public sealed record SettingsDto(
     string? CookieBrowser,
     string? CustomCookieSource,
     string? CustomCookieProfilePath,
-    string? CustomCookieFilePath);
+    string? CustomCookieFilePath,
+    string? WindowBackdrop);
 
 // PublishTrimmed が有効な Release ビルドでも正しく動くように、
 // シリアライザーをソース生成する(JsonSerializerContext)
