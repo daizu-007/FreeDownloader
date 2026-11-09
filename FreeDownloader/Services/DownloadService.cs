@@ -1,4 +1,6 @@
-﻿namespace FreeDownloader.Services;
+﻿using System.Globalization;
+
+namespace FreeDownloader.Services;
 
 // ダウンロードオプションのまとめ。UI → キュー → DownloadService へと渡される
 public class DownloadOptions
@@ -44,7 +46,10 @@ public class DownloadService
     }
 
     // Task<>は値を返すことを約束する。TSで言うところのPromiseに近い
-    public async Task<int> DownloadAsync(string url, DownloadOptions? options = null, CancellationToken ct = default, string? tempDir = null)
+    public Task<int> DownloadAsync(string url, DownloadOptions? options = null, CancellationToken ct = default, string? tempDir = null)
+        => DownloadAsync(url, options, _settings.YtDlp, ct, tempDir);
+
+    internal async Task<int> DownloadAsync(string url, DownloadOptions? options, YtDlpOptions ytDlp, CancellationToken ct, string? tempDir)
     {
         LastError = null;
         var browserArgument = BrowserCookieSource.GetBrowserArgument(_settings);
@@ -55,15 +60,15 @@ public class DownloadService
         if (!File.Exists(exePath))
             throw new FileNotFoundException($"yt-dlpが見つかりません: {exePath}");
 
-        var outputDir = App.Settings.DownloadDirectory;
+        var outputDir = _settings.DownloadDirectory;
         Directory.CreateDirectory(outputDir);
+        var outputTemplate = $"{ytDlp.FileNameTemplate}.%(ext)s";
+        List<string> arguments = ["-o", outputTemplate, "-P", $"home:{outputDir}"];
         if (tempDir is not null)
+        {
             Directory.CreateDirectory(tempDir);
-
-        const string outputTemplate = "%(title)s.%(ext)s";
-        List<string> arguments = tempDir is not null
-            ? ["-o", outputTemplate, "-P", $"home:{outputDir}", "-P", $"temp:{tempDir}"]
-            : ["-o", Path.Combine(outputDir, outputTemplate)];
+            arguments.AddRange(["-P", $"temp:{tempDir}"]);
+        }
 
         var ffmpegPath = _tools.ResolveFfmpegPath();
         if (File.Exists(ffmpegPath))
@@ -86,6 +91,32 @@ public class DownloadService
                 : $"bv*[height<={opts.Quality}]+ba/b[height<={opts.Quality}]";
             arguments.AddRange(["-f", format, "--merge-output-format", opts.Format]);
         }
+
+        var embedThumbnail = ytDlp.EmbedThumbnail && (opts.AudioOnly || opts.Format != "webm");
+        var embedSubtitles = ytDlp.EmbedSubtitles && !opts.AudioOnly;
+        arguments.AddRange([
+            "-N", ytDlp.ConcurrentFragments.ToString(CultureInfo.InvariantCulture),
+            embedThumbnail ? "--embed-thumbnail" : "--no-embed-thumbnail",
+            embedSubtitles ? "--embed-subs" : "--no-embed-subs",
+            ytDlp.EmbedChapters ? "--embed-chapters" : "--no-embed-chapters",
+            ytDlp.EmbedMetadata ? "--embed-metadata" : "--no-embed-metadata"
+        ]);
+
+        // --merge-output-format は結合したときだけ効くため、結合しない動画もサムネイル対応の形式にそろえる。
+        if (embedThumbnail && !opts.AudioOnly)
+            arguments.AddRange(["--remux-video", opts.Format]);
+
+        if (embedSubtitles)
+        {
+            arguments.AddRange(["--sub-langs", "all,-live_chat"]);
+            if (opts.Format == "webm")
+                arguments.AddRange(["--sub-format", "vtt/best"]);
+        }
+
+        if (ytDlp.RemoveSponsorSegments)
+            arguments.AddRange(["--sponsorblock-remove", "sponsor"]);
+        else
+            arguments.Add("--no-sponsorblock");
 
         if (browserArgument is not null)
             arguments.AddRange(["--cookies-from-browser", browserArgument]);

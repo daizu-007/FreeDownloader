@@ -92,6 +92,61 @@
                     CornerRadius="8"
                     Padding="16">
                 <StackPanel Spacing="12">
+                    <TextBlock Text="yt-dlp オプション" FontSize="16" FontWeight="SemiBold"/>
+                    <NumberBox x:Name="ConcurrentFragmentsBox"
+                               Header="スレッド数（-N）"
+                               Minimum="1"
+                               SpinButtonPlacementMode="Inline"
+                               Width="180"
+                               HorizontalAlignment="Left"/>
+                    <TextBlock Text="HLS や DASH の動画を分割して取得するときの並列数です。既定値は 1 です。"
+                               Opacity="0.6" TextWrapping="Wrap"/>
+
+                    <StackPanel Spacing="8">
+                        <TextBox x:Name="FileNameTemplateBox"
+                                 Header="出力ファイル名"
+                                 PlaceholderText="空欄の場合は動画タイトル"
+                                 IsSpellCheckEnabled="False"
+                                 IsTextPredictionEnabled="False"
+                                 LostFocus="FileNameTemplateBox_LostFocus"
+                                 KeyDown="FileNameTemplateBox_KeyDown"/>
+                        <StackPanel Orientation="Horizontal" Spacing="8">
+                            <Button Content="タイトル" Tag="%(title)s" Click="InsertFileNameVariable_Click" AllowFocusOnInteraction="False"/>
+                            <Button Content="投稿者" Tag="%(uploader)s" Click="InsertFileNameVariable_Click" AllowFocusOnInteraction="False"/>
+                            <Button Content="動画 ID" Tag="%(id)s" Click="InsertFileNameVariable_Click" AllowFocusOnInteraction="False"/>
+                            <Button Content="投稿日" Tag="%(upload_date)s" Click="InsertFileNameVariable_Click" AllowFocusOnInteraction="False"/>
+                        </StackPanel>
+                        <TextBlock Text="ボタンでカーソル位置に項目を挿入できます。文字や区切りも入力でき、拡張子は自動で付きます。"
+                                   Opacity="0.6" TextWrapping="Wrap"/>
+                        <TextBlock x:Name="FileNameTemplateError"
+                                   Text="使えない文字や書式が含まれています。文字として % を使う場合は %% と入力してください。"
+                                   Foreground="{ThemeResource SystemFillColorCriticalBrush}"
+                                   TextWrapping="Wrap"
+                                   Visibility="Collapsed"
+                                   AutomationProperties.LiveSetting="Polite"/>
+                    </StackPanel>
+
+                    <StackPanel Spacing="4">
+                        <TextBlock Text="ファイルに埋め込む項目" FontWeight="SemiBold"/>
+                        <CheckBox Content="サムネイル" IsChecked="{x:Bind Settings.EmbedThumbnail, Mode=TwoWay}"/>
+                        <CheckBox Content="字幕" IsChecked="{x:Bind Settings.EmbedSubtitles, Mode=TwoWay}"/>
+                        <CheckBox Content="チャプター" IsChecked="{x:Bind Settings.EmbedChapters, Mode=TwoWay}"/>
+                        <CheckBox Content="メタデータ" IsChecked="{x:Bind Settings.EmbedMetadata, Mode=TwoWay}"/>
+                        <TextBlock Text="WebM ではサムネイル、音声のみ（MP3）では字幕の埋め込みを省略します。"
+                                   Opacity="0.6" TextWrapping="Wrap"/>
+                    </StackPanel>
+                    <ToggleSwitch Header="SponsorBlock でスポンサー区間を削除"
+                                  IsOn="{x:Bind Settings.RemoveSponsorSegments, Mode=TwoWay}"/>
+                    <TextBlock Text="SponsorBlock に登録された YouTube 動画内のスポンサー区間をカットします。"
+                               Opacity="0.6" TextWrapping="Wrap"/>
+                </StackPanel>
+            </Border>
+            <Border Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                    BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                    BorderThickness="1"
+                    CornerRadius="8"
+                    Padding="16">
+                <StackPanel Spacing="12">
                     <TextBlock Text="ツールの管理" FontSize="16" FontWeight="SemiBold"/>
                     <ToggleSwitch Header="アプリ管理のツールを使用する(推奨)"
                                   IsOn="{x:Bind Settings.UseManagedTools, Mode=TwoWay}"/>

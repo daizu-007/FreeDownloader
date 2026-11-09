@@ -82,6 +82,63 @@ public class AppSettingsService : INotifyPropertyChanged
         set => Set(ref _customCookieFilePath, value);
     }
 
+    private YtDlpOptions _ytDlp = new();
+    internal YtDlpOptions YtDlp => _ytDlp;
+
+    public int ConcurrentFragments
+    {
+        get => _ytDlp.ConcurrentFragments;
+        set => Set(ref _ytDlp, _ytDlp with
+        {
+            ConcurrentFragments = Math.Clamp(value, 1, YtDlpOptions.MaxConcurrentFragments)
+        });
+    }
+
+    public string FileNameTemplate
+    {
+        get => _ytDlp.FileNameTemplate;
+        set
+        {
+            if (YtDlpOptions.IsValidFileNameTemplate(value))
+            {
+                Set(ref _ytDlp, _ytDlp with
+                {
+                    FileNameTemplate = string.IsNullOrWhiteSpace(value) ? YtDlpOptions.DefaultFileNameTemplate : value.Trim()
+                });
+            }
+        }
+    }
+
+    public bool EmbedThumbnail
+    {
+        get => _ytDlp.EmbedThumbnail;
+        set => Set(ref _ytDlp, _ytDlp with { EmbedThumbnail = value });
+    }
+
+    public bool EmbedSubtitles
+    {
+        get => _ytDlp.EmbedSubtitles;
+        set => Set(ref _ytDlp, _ytDlp with { EmbedSubtitles = value });
+    }
+
+    public bool EmbedChapters
+    {
+        get => _ytDlp.EmbedChapters;
+        set => Set(ref _ytDlp, _ytDlp with { EmbedChapters = value });
+    }
+
+    public bool EmbedMetadata
+    {
+        get => _ytDlp.EmbedMetadata;
+        set => Set(ref _ytDlp, _ytDlp with { EmbedMetadata = value });
+    }
+
+    public bool RemoveSponsorSegments
+    {
+        get => _ytDlp.RemoveSponsorSegments;
+        set => Set(ref _ytDlp, _ytDlp with { RemoveSponsorSegments = value });
+    }
+
     // ===== 永続化 =====
 
     // %LOCALAPPDATA%\FreeDownloader\settings.json に保存する
@@ -119,6 +176,12 @@ public class AppSettingsService : INotifyPropertyChanged
                 if (dto.CustomCookieSource is not null) _customCookieSource = dto.CustomCookieSource;
                 if (dto.CustomCookieProfilePath is not null) _customCookieProfilePath = dto.CustomCookieProfilePath;
                 if (dto.CustomCookieFilePath is not null) _customCookieFilePath = dto.CustomCookieFilePath;
+                if (dto.YtDlp is { } ytDlp)
+                {
+                    _ytDlp = ytDlp with { FileNameTemplate = YtDlpOptions.DefaultFileNameTemplate };
+                    ConcurrentFragments = ytDlp.ConcurrentFragments;
+                    if (ytDlp.FileNameTemplate is not null) FileNameTemplate = ytDlp.FileNameTemplate;
+                }
             }
             finally
             {
@@ -141,6 +204,13 @@ public class AppSettingsService : INotifyPropertyChanged
         OnPropertyChanged(nameof(CustomCookieSource));
         OnPropertyChanged(nameof(CustomCookieProfilePath));
         OnPropertyChanged(nameof(CustomCookieFilePath));
+        OnPropertyChanged(nameof(ConcurrentFragments));
+        OnPropertyChanged(nameof(FileNameTemplate));
+        OnPropertyChanged(nameof(EmbedThumbnail));
+        OnPropertyChanged(nameof(EmbedSubtitles));
+        OnPropertyChanged(nameof(EmbedChapters));
+        OnPropertyChanged(nameof(EmbedMetadata));
+        OnPropertyChanged(nameof(RemoveSponsorSegments));
     }
 
     public void Save()
@@ -155,7 +225,8 @@ public class AppSettingsService : INotifyPropertyChanged
             CustomCookieSource,
             CustomCookieProfilePath,
             CustomCookieFilePath,
-            WindowBackdrop);
+            WindowBackdrop,
+            YtDlp);
 
         Directory.CreateDirectory(Path.GetDirectoryName(SettingsFilePath)!);
         File.WriteAllText(SettingsFilePath, JsonSerializer.Serialize(dto, AppSettingsJsonContext.Default.SettingsDto));
@@ -188,7 +259,8 @@ public sealed record SettingsDto(
     string? CustomCookieSource,
     string? CustomCookieProfilePath,
     string? CustomCookieFilePath,
-    string? WindowBackdrop);
+    string? WindowBackdrop,
+    YtDlpOptions? YtDlp = null);
 
 // PublishTrimmed が有効な Release ビルドでも正しく動くように、
 // シリアライザーをソース生成する(JsonSerializerContext)

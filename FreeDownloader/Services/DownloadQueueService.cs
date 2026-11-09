@@ -21,6 +21,7 @@ public class DownloadItem : INotifyPropertyChanged
 
     // ユーザーが選択したダウンロードオプション
     public DownloadOptions Options { get; }
+    internal YtDlpOptions YtDlp { get; } = App.Settings.YtDlp;
 
     public DownloadItem(string url, string tempDir, DownloadOptions? options = null)
     {
@@ -117,7 +118,7 @@ public class DownloadQueueService
                 item.Cts.Token.ThrowIfCancellationRequested();
 
                 item.Status = "ダウンロード中";
-                int exitCode = await _downloader.DownloadAsync(item.Url, item.Options, item.Cts.Token, item.TempDir);
+                int exitCode = await _downloader.DownloadAsync(item.Url, item.Options, item.YtDlp, item.Cts.Token, item.TempDir);
                 item.Status = exitCode == 0
                     ? "完了"
                     : $"エラー(終了コード {exitCode}): {_downloader.LastError ?? "詳細不明"}";
